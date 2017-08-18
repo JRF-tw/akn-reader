@@ -1,6 +1,7 @@
 module.exports = {
-  entry: './reader.js',
+  entry: './app/main.js',
   output: {
+    path: __dirname + "/dist",
     filename: 'bundle.js'
   }
 };

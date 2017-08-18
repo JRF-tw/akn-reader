@@ -1,0 +1,25 @@
+language: node_js
+
+node_js:
+  - stable
+
+env:
+  global:
+    secure: pDw3wekQtT8pP10CZKt0fTCrnF0Sx8i/xIIobeOmmcrWD+J0XzEZkcn+CCcQiUGpa1nRPrjl6vUE2/SEnK44cV6iJY/J0PUHdZ+arY4YRdQMuUNozyHvLoHioIi6DYgTXuHYJmgbS93ectry4NQEnW3nIo5QUoa+kj7PUVTb3MRk+18Ae6wSEru8wNrk7gVvoWOpfi0fEp7HMQNCliuRzzC/EM+5a2BzoWstts43t90cwx7eGYqSxnXa2pIRkk3+0CasEMqN9PGBUeF9SJpbYj3xfv5Q0g5zM6QpY5qbyU1Wy4KSAsszCiABPAnbz2Cw3EaQ0Oegtld0lITnEJPDwT0yAv1GNZl+T7Cc2oyjronoDztbKP760Loe4UnCQjb472+GgDgOZajQ98KLsVvB74B4cf4lYagk1y72N5l9QMj4sHTbBJQYOgc5aMdKRbHvBvkK1RFMXWeEBsqxAGvj92OYwpcj0ol7Uxpev2905/kYtQq3xeImLgzNQUalWjUCshuKasl4DnXpvY+6XnUxLNwxNi4s/awc3oclyCHPq2gj+szlwvLeuki76p+v69zKyW+KnjSF7YxxDrthvKlqcYjPmRHCXEgnrw9oDOgdSYhL9BM2WnetmlMywtKJW3dE6bvTLIP+cKC6pNIlmiFGjHv1RjhT0WivMVdOMRqJk60=
+
+install:
+  - npm install
+
+script:
+  # Set Git config
+  - git config --global user.name "$GIT_NAME"
+  - git config --global user.email "$GIT_EMAIL"
+  - git config --global push.default simple
+  - git clone --depth 1 --branch gh-pages https://$GH_TOKEN@github.com/JRF-tw/akn-reader dist
+  # Generate Hexo static pages
+  - npm run build
+  - cd dist
+  - git add -A .
+  - MESSAGE=`date +\ %Y-%m-%d\ %H:%M:%S`
+  - git commit -m "Site updated:$MESSAGE"
+  - git push --quiet
