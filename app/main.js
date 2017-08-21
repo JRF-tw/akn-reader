@@ -585,7 +585,7 @@ var partyItem2html = (json) => {
 }
 
 var blockList2html = (json, key = 'blockList') => {
-  var result;
+  var result = "";
   if (json.hasOwnProperty(key)) {
     var result = "<ul>";
     json[key].forEach((item) => {
@@ -621,7 +621,7 @@ var text2html = (json) => {
   return json['text'];
 }
 
-var conclusion2html = (json) => {
+var conclusions2html = (json) => {
   var result = "";
   json.forEach((item) => {
     if (item['role'] === 'judge') {
@@ -661,7 +661,7 @@ var updateContent = (json) => {
   var dateElement = document.getElementById('date');
   dateElementText = date2text(json['judgement']['meta']['publication']['date']);
   var conclusions = document.getElementById('conclusions');
-  conclusions.innerHTML = conclusion2html(json['judgement']['conclusions']);
+  conclusions.innerHTML = conclusions2html(json['judgement']['conclusions']);
 }
 
 var updateAkn = function() {
