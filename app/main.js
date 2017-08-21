@@ -505,10 +505,7 @@ var parseDecisionElement = (element) => {
   if (element.hasOwnProperty('elements')) {
     element['elements'].forEach((item) => {
       if (item['name'] === 'blockList') {
-        if (!data.hasOwnProperty('blockList')) {
-          data['blockList'] = [];
-        }
-        data['blockList'].push(parseBlockListElement(item));
+        data['blockList'] = (parseBlockListElement(item));
       }
     })
   }
