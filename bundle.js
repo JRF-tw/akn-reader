@@ -4005,9 +4005,13 @@ function base64DetectIncompleteChar(buffer) {
 /* WEBPACK VAR INJECTION */(function(process) {/*jslint node:true */
 
 module.exports = {
-    sanitize: function (text) {
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    sanitizeElement: function (text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     },
+    // sanitizeAttribute: function (text) {
+    //     // should escape " if attribute is enclosed in " otherwise escape ' if attribute is enclosed in '
+    //     return text.replace(/"/g, "&quot;").replace(/'/g, "&apos;"); // or use &#39; for '
+    // },
     copyOptions: function (options) {
         var key, copy = {};
         for (key in options) {
@@ -4075,6 +4079,7 @@ module.exports = {
         return options;
     }
 };
+
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
@@ -4304,9 +4309,6 @@ function onInstruction(instruction) {
         if (options.trim) {
             instruction.body = instruction.body.trim();
         }
-        if (options.sanitize) {
-            instruction.body = common.sanitize(instruction.body);
-        }
         var value = {};
         if (options.instructionHasAttributes && Object.keys(attributes).length) {
             value[instruction.name] = {};
@@ -4387,7 +4389,7 @@ function onText(text) {
         text = nativeType(text);
     }
     if (options.sanitize) {
-        text = common.sanitize(text);
+        text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
     addField('text', text, options);
 }
@@ -4398,9 +4400,6 @@ function onComment(comment) {
     }
     if (options.trim) {
         comment = comment.trim();
-    }
-    if (options.sanitize) {
-        comment = common.sanitize(comment);
     }
     addField('comment', comment, options);
 }
@@ -5864,7 +5863,7 @@ function writeAttributes(attributes, options) {
     var key, result = '';
     for (key in attributes) {
         if (attributes.hasOwnProperty(key)) {
-            result += ' ' + key + '="' + writeText(attributes[key], {ignoreText: false}) + '"';
+            result += ' ' + key + '="' + attributes[key].replace(/"/g, "&quot;") + '"';
         }
     }
     return result;
@@ -5905,7 +5904,8 @@ function writeDoctype(doctype, options) {
 
 function writeText(text, options) {
     text = '' + text; // ensure Number and Boolean are converted to String
-    return options.ignoreText ? '' : text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+    text = text.replace(/&amp;/g, '&'); // desanitize to avoid double sanitization
+    return options.ignoreText ? '' : text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function hasContent(element, options) {
@@ -6526,7 +6526,7 @@ var parseFRBRuriElement = (element) => {
 }
 
 var parseFRBRdateElement = (element) => {
-  return getArrayValue(element, 'attributes', 'date')
+  return new Date(getArrayValue(element, 'attributes', 'date'))
 }
 
 var parseFRBRauthorElement = (element) => {
@@ -6551,7 +6551,7 @@ var parseFRBRformatElement = (element) => {
 
 var parsePublicationElement = (element) => {
   data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     name: getArrayValue(element, 'attributes', 'name'),
     number: getArrayValue(element, 'attributes', 'number')
   };
@@ -6583,7 +6583,7 @@ var parseLifecycleElement = (element) => {
 }
 var parseEventRefElement = (element) => {
   var data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     type: getArrayValue(element, 'attributes', 'type')
   }
   return data;
@@ -6600,7 +6600,7 @@ var parseWorkflowElement = (element) => {
 }
 var parseStepElement = (element) => {
   var data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     outcome: getArrayValue(element, 'attributes', 'outcome')
   }
   return data;
@@ -6975,6 +6975,13 @@ var conclusion2html = (json) => {
       result += "<p>法官&nbsp;" + item['name'] + "</p>";
     }
   })
+  return result;
+}
+
+var date2text = (date) => {
+  var dateArray = date.toJSON().split('T')[0].split('-');
+  var result = dateArray[0] + "年" + dateArray[1] + "月" + dateArray[2] + "日";
+  return result;
 }
 
 var updateContent = (json) => {
@@ -6998,8 +7005,10 @@ var updateContent = (json) => {
   reasoning.innerHTML = blockList2html(json['judgement']['judgementBody']['motivation'], 'reasoningBlockList');
   var decision = document.getElementById('decision');
   decision.innerHTML = blockList2html(json['judgement']['judgementBody']['decision']);
+  var dateElement = document.getElementById('date');
+  dateElementText = date2text(json['judgement']['meta']['publication']['date']);
   var conclusions = document.getElementById('conclusions');
-  conclusions.innerHTML = conclusions2html(json['judgement']['conclusions']);
+  conclusions.innerHTML = conclusion2html(json['judgement']['conclusions']);
 }
 
 var updateAkn = function() {
