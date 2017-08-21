@@ -179,7 +179,7 @@ var parseFRBRuriElement = (element) => {
 }
 
 var parseFRBRdateElement = (element) => {
-  return getArrayValue(element, 'attributes', 'date')
+  return new Date(getArrayValue(element, 'attributes', 'date'))
 }
 
 var parseFRBRauthorElement = (element) => {
@@ -204,7 +204,7 @@ var parseFRBRformatElement = (element) => {
 
 var parsePublicationElement = (element) => {
   data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     name: getArrayValue(element, 'attributes', 'name'),
     number: getArrayValue(element, 'attributes', 'number')
   };
@@ -236,7 +236,7 @@ var parseLifecycleElement = (element) => {
 }
 var parseEventRefElement = (element) => {
   var data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     type: getArrayValue(element, 'attributes', 'type')
   }
   return data;
@@ -253,7 +253,7 @@ var parseWorkflowElement = (element) => {
 }
 var parseStepElement = (element) => {
   var data = {
-    date: getArrayValue(element, 'attributes', 'date'),
+    date: new Date(getArrayValue(element, 'attributes', 'date')),
     outcome: getArrayValue(element, 'attributes', 'outcome')
   }
   return data;
@@ -628,6 +628,13 @@ var conclusion2html = (json) => {
       result += "<p>法官&nbsp;" + item['name'] + "</p>";
     }
   })
+  return result;
+}
+
+var date2text = (date) => {
+  var dateArray = date.toJSON().split('T')[0].split('-');
+  var result = dateArray[0] + "年" + dateArray[1] + "月" + dateArray[2] + "日";
+  return result;
 }
 
 var updateContent = (json) => {
@@ -651,8 +658,10 @@ var updateContent = (json) => {
   reasoning.innerHTML = blockList2html(json['judgement']['judgementBody']['motivation'], 'reasoningBlockList');
   var decision = document.getElementById('decision');
   decision.innerHTML = blockList2html(json['judgement']['judgementBody']['decision']);
+  var dateElement = document.getElementById('date');
+  dateElementText = date2text(json['judgement']['meta']['publication']['date']);
   var conclusions = document.getElementById('conclusions');
-  conclusions.innerHTML = conclusions2html(json['judgement']['conclusions']);
+  conclusions.innerHTML = conclusion2html(json['judgement']['conclusions']);
 }
 
 var updateAkn = function() {
