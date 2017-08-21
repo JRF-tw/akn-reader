@@ -7016,7 +7016,7 @@ var updateAkn = function() {
   var url = formUrl.value;
   console.log(url);
   axios.get(url).then((data) => {
-    result = convert.xml2js(data['data'], {compact: false});
+    var result = convert.xml2js(data['data'], {compact: false});
     result = parseAknJson(result);
     updateContent(result);
     printJson(result);
