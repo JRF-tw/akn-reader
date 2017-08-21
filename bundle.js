@@ -7006,7 +7006,7 @@ var updateContent = (json) => {
   var decision = document.getElementById('decision');
   decision.innerHTML = blockList2html(json['judgement']['judgementBody']['decision']);
   var dateElement = document.getElementById('date');
-  dateElementText = date2text(json['judgement']['meta']['publication']['date']);
+  dateElement.innerText = date2text(json['judgement']['meta']['publication']['date']);
   var conclusions = document.getElementById('conclusions');
   conclusions.innerHTML = conclusions2html(json['judgement']['conclusions']);
 }
