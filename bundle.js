@@ -5860,10 +5860,11 @@ function writeAttributes(attributes, options) {
     if (options.ignoreAttributes) {
         return '';
     }
-    var key, result = '';
+    var key, attr, result = '';
     for (key in attributes) {
         if (attributes.hasOwnProperty(key)) {
-            result += ' ' + key + '="' + attributes[key].replace(/"/g, "&quot;") + '"';
+            attr = '' + attributes[key]; // ensure Number and Boolean are converted to String
+            result += ' ' + key + '="' + attr.replace(/"/g, '&quot;') + '"';
         }
     }
     return result;
@@ -6724,9 +6725,22 @@ var parsePartiesPElement = (element) => {
   return data;
 }
 var parseSummaryPElement = (element) => {
-  var data = {
-    text: getElementText(element).split("\n")
-  };
+  var data = [];
+  element['elements'].forEach((item) => {
+    if (item['name'] === 'blockList') {
+      var itemData = {};
+      if (!data.hasOwnProperty('blockList')) {
+        itemData['blockList'] = [];
+      }
+      itemData['blockList']= parseBlockListElement(item);
+      data.push(itemData);
+    } else if (item['name'] === 'p' || item['name'] === 'b') {
+      var itemData = {
+        text: getElementText(element).split("\n")
+      };
+      data.push(itemData)
+    }
+  });
   return data;
 }
 
@@ -6891,9 +6905,20 @@ var printJson = (json) => {
 
 var array2html = (json) => {
   var result = "";
-  console.log(json);
   json.forEach((item) => {
     result += "<p>" + item + "</p>";
+  })
+  return result;
+}
+
+var complexArray2html = (json) => {
+  var result = ""
+  json.forEach((item) => {
+    if (item.hasOwnProperty('text')) {
+      result += array2html(item);
+    } else if (item.hasOwnProperty('blockList')) {
+      result += block2html(item);
+    }
   })
   return result;
 }
@@ -6935,8 +6960,8 @@ var blockList2html = (json, key = 'blockList') => {
     json[key].forEach((item) => {
       if(item['name'] === 'item') {
         result += item2html(item);
-      } else if (item['name'] === 'intro') {
-        result += intro2html(item);
+      } else if (item['name'] === 'listIntroduction') {
+        result += listIntroduction2html(item);
       }
     })
     result += "</ul>";
@@ -6944,8 +6969,8 @@ var blockList2html = (json, key = 'blockList') => {
   return result;
 }
 
-var intro2html = (json) => {
-  return json['intro'];
+var listIntroduction2html = (json) => {
+  return json['listIntroduction'];
 }
 
 var item2html = (json) => {
@@ -6991,7 +7016,7 @@ var updateContent = (json) => {
   var parties = document.getElementById('parties');
   parties.innerHTML = parties2html(json['judgement']['header']['parties']);
   var summary = document.getElementById('summary');
-  summary.innerHTML = array2html(json['judgement']['header']['summary']['text']);
+  summary.innerHTML = complexArray2html(json['judgement']['header']['summary']['text']);
   var introduction = document.getElementById('introduction');
   introduction.innerHTML = blockList2html(json['judgement']['judgementBody']['introduction']);
   var background = document.getElementById('background');
